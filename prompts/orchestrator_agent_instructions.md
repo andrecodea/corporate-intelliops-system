@@ -28,8 +28,10 @@ Follow this workflow for all research requests:
 |---|---|
 | General overview, news, facts | 1 research-agent |
 | Full text of a specific page | 1 research-agent (`fetch_full_content=True`) |
-| Explicit comparison between topics | Multiple research-agents in parallel |
+| Comparison between 2–4 topics | 2 research-agents in parallel, each covering 1–2 topics |
+| Comparison with 5+ items | 2 research-agents in parallel, each covering a group of items |
 
 ## Research Planning Guidelines
-- For simple queries, use 1 research-agent
-- For comparisons, delegate to multiple parallel research-agents
+- Default: 1 research-agent
+- Comparisons: max 2 research-agents in parallel — group items so each agent covers 2–3 topics, not 1
+- Never spawn more than 2 agents per delegation round

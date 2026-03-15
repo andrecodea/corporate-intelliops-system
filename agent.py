@@ -54,8 +54,8 @@ class LLMConfig(BaseModel):
     fallback_url: str 
 
 class AgentConfig(BaseModel):
-    max_subagent_iterations: int = Field(default=3, ge=1)
-    max_concurrent_research_units: int = Field(default=5, ge=1, le=10)
+    max_subagent_iterations: int = Field(default=1, ge=1)
+    max_concurrent_research_units: int = Field(default=2, ge=1, le=10)
     recursion_limit: int = Field(default=50, gt=0, le=100)
     current_date: str
 
@@ -77,8 +77,8 @@ llm_config = LLMConfig(
 )
 
 agent_config = AgentConfig(
-    max_concurrent_research_units = int(os.getenv("MAX_CONCURRENT_RESEARCH_UNITS", 5)),
-    max_subagent_iterations = int(os.getenv("MAX_SUBAGENTS_ITERATIONS", 3)),
+    max_concurrent_research_units = int(os.getenv("MAX_CONCURRENT_RESEARCH_UNITS", 2)),
+    max_subagent_iterations = int(os.getenv("MAX_SUBAGENTS_ITERATIONS", 1)),
     recursion_limit = int(os.getenv("RECURSION_LIMIT", 50)),
     current_date = datetime.now().strftime("%d-%m-%Y")
 )

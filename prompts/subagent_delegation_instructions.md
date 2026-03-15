@@ -11,7 +11,7 @@
 **Default: 1 research-agent.** Parallelize only when the query explicitly requires comparing distinct entities or clearly separated aspects.
 
 - Simple or single-topic queries → 1 research-agent
-- Explicit comparisons (A vs B vs C) → 1 research-agent per entity, in parallel
+- Explicit comparisons → max 2 research-agents in parallel, each covering a group of 2–3 items (never 1 agent per item)
 
 ## Limits
 - Max {max_concurrent_research_units} parallel sub-agents per iteration
