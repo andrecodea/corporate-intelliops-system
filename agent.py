@@ -26,6 +26,8 @@ from dataclasses import dataclass, asdict
 load_dotenv()
 log = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).parent
+WORKSPACE_DIR = BASE_DIR / "workspace"
+WORKSPACE_DIR.mkdir(exist_ok=True)
 
 # Loader function
 def _load_prompt(filename:str) -> str:
@@ -204,9 +206,7 @@ def build_agent() -> Runnable:
         # --------------------
         # |  INIT DEEPAGENT  |
         # --------------------
-        workspace_dir = BASE_DIR / "workspace"
-        workspace_dir.mkdir(exist_ok=True)
-        backend = FilesystemBackend(root_dir=workspace_dir, virtual_mode=True)
+        backend = FilesystemBackend(root_dir=WORKSPACE_DIR, virtual_mode=True)
 
         agent_graph = create_deep_agent(
             model=llm,

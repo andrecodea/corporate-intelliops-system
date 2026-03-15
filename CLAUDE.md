@@ -14,10 +14,13 @@ uv sync
 python tests/run_agent.py "your query here"
 ```
 
-**Run the agent (via LangGraph CLI):**
+**Run the agent (via LangGraph dev server):**
 ```bash
-langgraph up
+PYTHONUTF8=1 uv run langgraph dev --no-reload --allow-blocking
 ```
+- `PYTHONUTF8=1` — required on Windows to avoid cp1252 encoding crash
+- `--allow-blocking` — required because `InMemorySaver` does synchronous I/O inside the ASGI event loop
+- Studio UI: `https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024`
 
 ## Environment Setup
 
