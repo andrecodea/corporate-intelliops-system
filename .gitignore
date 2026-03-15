@@ -126,3 +126,5 @@ dmypy.json
 
 # Test runs
 tests/runs/*.json
+
+CLAUDE.md

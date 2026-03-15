@@ -109,7 +109,7 @@ python tests/run_agent.py "what is context engineering for AI agents?"
 **LangGraph dev server:**
 
 ```bash
-langgraph up
+PYTHONUTF8=1 uv run langgraph dev --no-reload --allow-blocking
 ```
 
 ## Performance Benchmarks
@@ -118,3 +118,22 @@ langgraph up
 |---|---|---|---|
 | Simple / single-topic | ~6 | ~40k | ~60s |
 | Comparison / deep research | ~14 | ~107k | ~94s |
+
+## Roadmap
+
+### Phase 1 — Token & Cost Optimization
+- [ ] Compress sub-agent findings before passing to orchestrator (reduce report-writing context)
+- [ ] Route report-writing calls to a cheaper model (e.g. Haiku) instead of Sonnet
+- [ ] Evaluate removing the verification step (Step 6) to save 1 orchestrator call
+
+### Phase 2 — API Layer (FastAPI)
+- [ ] Expose the agent as a REST API via FastAPI
+- [ ] Streaming endpoint (`/stream`) for real-time token delivery
+- [ ] Thread/session management for multi-turn conversations
+- [ ] Request validation and structured error responses
+
+### Phase 3 — Frontend (CopilotKit)
+- [ ] Custom chat UI built with [CopilotKit](https://copilotkit.ai)
+- [ ] Real-time streaming rendering of the final report
+- [ ] Source citations rendered as clickable cards
+- [ ] Research progress indicators (which sub-agent is running, search queries in flight)

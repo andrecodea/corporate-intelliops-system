@@ -102,21 +102,17 @@ def _init_llm(config: LLMConfig) -> BaseChatModel:
     """
     log.info("[AGENT] Initializing LLM Configurations...")
 
-    try:
-        anthropic_key: str | None = os.getenv("ANTHROPIC_API_KEY")
-        if anthropic_key:
-            log.info(f"[AGENT] LLM initialized: model={config.model_name}")
-            return ChatAnthropic(model=config.model_name, api_key=anthropic_key)
+    anthropic_key: str | None = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key:
+        log.info(f"[AGENT] LLM initialized: model={config.model_name}")
+        return ChatAnthropic(model=config.model_name, base_url=config.base_url, api_key=anthropic_key)
 
-        openai_key: str | None = os.getenv("OPENAI_API_KEY")
-        if openai_key:
-            log.info(f"[AGENT] LLM initialized: model={config.fallback_model} (fallback)")
-            return ChatOpenAI(model=config.fallback_model, base_url=config.fallback_url, api_key=openai_key)
+    openai_key: str | None = os.getenv("OPENAI_API_KEY")
+    if openai_key:
+        log.info(f"[AGENT] LLM initialized: model={config.fallback_model} (fallback)")
+        return ChatOpenAI(model=config.fallback_model, base_url=config.fallback_url, api_key=openai_key)
 
-        raise EnvironmentError("No LLM API key found, provide ANTHROPIC_API_KEY or OPENAI_API_KEY in .env")
-    except Exception as e:
-        log.error(f"Failed to initialize LLM: {e}", exc_info=True)
-        raise
+    raise EnvironmentError("No LLM API key found, provide ANTHROPIC_API_KEY or OPENAI_API_KEY in .env")
 
 # --------------------
 # |  INIT SUBAGENTS  |
@@ -130,20 +126,16 @@ def _init_subagents(config: AgentConfig) -> list[dict]:
     Returns:
         list[dict]: List of dictionaries containing subagent specifications (name, description, prompt and tools)
     """
-    try:
-        log.info("[AGENT] Initializing Subagent Configurations...")
+    log.info("[AGENT] Initializing Subagent Configurations...")
 
-        research_subagent = SubAgent(
-            name="research-agent",
-            description="Delegate research to the researcher sub-agent. Searches the web and fetches full page content when needed. Only give this agent one topic at a time.",
-            system_prompt=RESEARCHER_INSTRUCTIONS.format(date=config.current_date),
-            tools=[tavily_search, think_tool],
-        )
+    research_subagent = SubAgent(
+        name="research-agent",
+        description="Delegate research to the researcher sub-agent. Searches the web and fetches full page content when needed. Only give this agent one topic at a time.",
+        system_prompt=RESEARCHER_INSTRUCTIONS.format(date=config.current_date),
+        tools=[tavily_search, think_tool],
+    )
 
-        return [asdict(research_subagent)]
-    except Exception as e:
-        log.error(f"Failed to initialize subagents: {e}", exc_info=True)
-        raise
+    return [asdict(research_subagent)]
 
 # ---------------------
 # | INIT INSTRUCTIONS |
@@ -161,25 +153,21 @@ def _assemble_instructions(config: AgentConfig, other_agents: list) -> str:
     Returns:
         str: concatenated prompt with all variables formatted.
     """
-    try:
-        log.info(f"[AGENT] Initializing instruction configurations...")
-        return (
-            RESEARCH_WORKFLOW_INSTRUCTIONS
-            + "\n\n"
-            + "=" * 80
-            + "\n\n"
-            + "=" * 80
-            + TASK_DESCRIPTION_PREFIX
-            + "\n\n"
-            + SUBAGENT_DELEGATION_INSTRUCTIONS.format(
-                max_concurrent_research_units=config.max_concurrent_research_units,
-                max_subagent_iterations=config.max_subagent_iterations,
-                other_agents=other_agents,
-            )
+    log.info("[AGENT] Initializing instruction configurations...")
+    return (
+        RESEARCH_WORKFLOW_INSTRUCTIONS
+        + "\n\n"
+        + "=" * 80
+        + "\n\n"
+        + "=" * 80
+        + TASK_DESCRIPTION_PREFIX
+        + "\n\n"
+        + SUBAGENT_DELEGATION_INSTRUCTIONS.format(
+            max_concurrent_research_units=config.max_concurrent_research_units,
+            max_subagent_iterations=config.max_subagent_iterations,
+            other_agents=other_agents,
         )
-    except Exception as e:
-        log.error(f"Failed to initialize prompt configurations: {e}", exc_info=True)
-        raise
+    )
 
 # ---------------------
 # | INIT AGENT GRAPH  |
@@ -193,15 +181,15 @@ def build_agent() -> Runnable:
         log.info("[AGENT] LLM initialized successfully")
 
         tools: list = [tavily_search, think_tool]
-        log.info(f"[AGENT] Tools loaded successfully")
+        log.info("[AGENT] Tools loaded successfully")
 
         subagents: list = _init_subagents(agent_config)
-        log.info(f"[AGENT] Subagents initialized successfully")
+        log.info("[AGENT] Subagents initialized successfully")
 
         other_agents: list = [s['name'] for s in subagents]
 
         INSTRUCTIONS = _assemble_instructions(agent_config, other_agents=other_agents)
-        log.info(f"[AGENT] Instructions loaded successfully")
+        log.info("[AGENT] Instructions loaded successfully")
 
         # --------------------
         # |  INIT DEEPAGENT  |
