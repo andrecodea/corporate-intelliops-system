@@ -8,7 +8,6 @@ import streamlit as st
 from httpx_sse import connect_sse, SSEError
 
 API_URL = os.getenv("RESEARCH_API_URL", "http://localhost:8005/research/stream")
-SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
 
 st.title("Research")
 st.caption("Enter a query and the agent will search the web, synthesize findings, and produce a cited report.")
@@ -55,9 +54,12 @@ def stream_events(query: str):
         raise ConnectionError(f"API returned a non-SSE response. Is the server running? ({e})")
 
 def send_to_slack(content: str) -> bool:
+    url = os.getenv("SLACK_WEBHOOK_URL", "")
+    if not url:
+        return False
     try:
         response = httpx.post(
-            SLACK_WEBHOOK_URL,
+            url,
             json={"text": f"*Deep Research Report*\n\n{content[:2900]}"},
             timeout=10,
         )
@@ -200,7 +202,7 @@ if st.session_state.report_content:
         )
 
     with col3:
-        if SLACK_WEBHOOK_URL:
+        if os.getenv("SLACK_WEBHOOK_URL"):
             if st.button("Send to Slack", icon=":material/send:"):
                 ok = send_to_slack(report_content)
                 st.success("Sent to Slack.") if ok else st.error("Failed to send.")
