@@ -2,6 +2,8 @@
 
 A multi-agent deep research assistant built with [deepagents](https://github.com/langchain-ai/deepagents) and LangGraph. Given a query, it autonomously searches the web, synthesizes findings, and produces a structured report with cited sources.
 
+![Deep Research Agent UI](assets/research.png)
+
 ## Architecture
 
 ### Agent Flow
@@ -143,9 +145,11 @@ See [`examples/final_report.md`](examples/final_report.md) for a sample report g
 - [ ] Thread/session management for multi-turn conversations
 - [ ] Request validation and structured error responses
 
-### Phase 3 — Frontend (Streamlit) 🚧 in progress
-- [x] Project structure: pages (`chat`, `home`, `info`), custom theme, Space Grotesk/Mono fonts
-- [ ] Chat UI with real-time tool call visualization
-- [ ] Report rendering with Markdown + LaTeX support
-- [ ] Export report as `.md` or PDF
-- [ ] Info page with architecture diagrams and model documentation
+### Phase 3 — Frontend (Streamlit) ✅
+- [x] Multi-page app: Home, Research, Info
+- [x] Real-time agent activity panel with dynamic status labels
+- [x] Token streaming with batch rendering
+- [x] Report rendering with Markdown + LaTeX support
+- [x] Export: download `.md`, open in Obsidian, send to Slack
+- [x] Info page with architecture diagrams, stack table, and benchmarks
+- [x] Session state persistence across page navigation
