@@ -2,8 +2,6 @@ import re
 import json
 import urllib.parse
 import os
-import threading
-import itertools
 
 import httpx
 import streamlit as st
@@ -118,28 +116,12 @@ if search_btn and query:
         "edit_file": "Writing report...",
     }
 
-    LOADING_MESSAGES = [
-        "Planning research...",
-        "Initializing agents...",
-        "Starting research...",
-    ]
-
     with col_activity:
         st.subheader("Agent Activity")
         with st.spinner(""):
             status_placeholder = st.empty()
             activity_placeholder = st.empty()
-
-            stop_cycling = threading.Event()
-
-            def cycle_status():
-                for msg in itertools.cycle(LOADING_MESSAGES):
-                    if stop_cycling.is_set():
-                        break
-                    status_placeholder.markdown(f"_{msg}_")
-                    stop_cycling.wait(2.5)
-
-            threading.Thread(target=cycle_status, daemon=True).start()
+            status_placeholder.markdown("_Planning research..._")
 
             def render_activity():
                 lines = [format_activity_item(t, i, d) for t, i, d in st.session_state.activity_items]
@@ -148,13 +130,11 @@ if search_btn and query:
             try:
                 for event_type, data in stream_events(query):
                     if event_type == "error":
-                        stop_cycling.set()
                         status_placeholder.markdown("_Error_")
                         st.error(f"Agent error: {data.get('message', 'Unknown error')}")
                         break
 
                     elif event_type == "tool_call":
-                        stop_cycling.set()
                         had_tool_calls = True
                         tool = data.get("tool", "")
                         inp = data.get("input", {})
@@ -173,7 +153,6 @@ if search_btn and query:
                         token = data.get("content", "")
                         if token:
                             if not had_tool_calls:
-                                stop_cycling.set()
                                 status_placeholder.markdown("_Answering from existing knowledge..._")
                             st.session_state.report_content += token
                             token_buffer += token
@@ -188,7 +167,6 @@ if search_btn and query:
                         render_activity()
 
             except Exception as e:
-                stop_cycling.set()
                 status_placeholder.markdown("_Error_")
                 st.error(f"Connection error: {e}")
 
