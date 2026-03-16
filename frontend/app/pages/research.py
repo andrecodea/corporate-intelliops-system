@@ -82,7 +82,14 @@ st.divider()
 # |    STREAMING     |
 # --------------------
 
+if "report_content" not in st.session_state:
+    st.session_state.report_content = ""
+    st.session_state.activity_items = []
+
 if search_btn and query:
+    st.session_state.report_content = ""
+    st.session_state.activity_items = []
+
     col_activity, col_report = st.columns([2, 3], gap="large")
 
     with col_activity:
@@ -95,15 +102,13 @@ if search_btn and query:
 
     RENDER_EVERY = 15
 
-    activity_items: list[tuple[str, dict, bool]] = []
-    report_content = ""
     token_buffer = ""
     had_tool_calls = False
 
     activity_placeholder.markdown("_Thinking..._")
 
     def render_activity():
-        lines = [format_activity_item(tool, inp, done) for tool, inp, done in activity_items]
+        lines = [format_activity_item(tool, inp, done) for tool, inp, done in st.session_state.activity_items]
         activity_placeholder.markdown("\n\n".join(lines) if lines else "")
 
     try:
@@ -116,13 +121,13 @@ if search_btn and query:
                 had_tool_calls = True
                 tool = data.get("tool", "")
                 inp = data.get("input", {})
-                activity_items.append((tool, inp, False))
+                st.session_state.activity_items.append((tool, inp, False))
                 render_activity()
 
             elif event_type == "tool_result":
-                if activity_items:
-                    tool, inp, _ = activity_items[-1]
-                    activity_items[-1] = (tool, inp, True)
+                if st.session_state.activity_items:
+                    tool, inp, _ = st.session_state.activity_items[-1]
+                    st.session_state.activity_items[-1] = (tool, inp, True)
                 render_activity()
 
             elif event_type == "token":
@@ -130,54 +135,67 @@ if search_btn and query:
                 if token:
                     if not had_tool_calls:
                         activity_placeholder.info("No deep research needed — answered from existing knowledge.")
-                    report_content += token
+                    st.session_state.report_content += token
                     token_buffer += token
                     if len(token_buffer) >= RENDER_EVERY:
-                        report_placeholder.markdown(fix_latex(report_content))
+                        report_placeholder.markdown(fix_latex(st.session_state.report_content))
                         token_buffer = ""
 
             elif event_type == "done":
                 if token_buffer:
-                    report_placeholder.markdown(fix_latex(report_content))
+                    report_placeholder.markdown(fix_latex(st.session_state.report_content))
                 render_activity()
 
     except Exception as e:
         st.error(f"Connection error: {e}")
 
-    # --------------------
-    # |     EXPORTS      |
-    # --------------------
+elif st.session_state.report_content:
+    col_activity, col_report = st.columns([2, 3], gap="large")
 
-    if report_content:
-        st.divider()
-        col1, col2, col3 = st.columns(3)
+    with col_activity:
+        st.subheader("Agent Activity")
+        lines = [format_activity_item(tool, inp, done) for tool, inp, done in st.session_state.activity_items]
+        st.markdown("\n\n".join(lines) if lines else "")
 
-        with col1:
-            st.download_button(
-                "Download Markdown",
-                data=report_content,
-                file_name="research_report.md",
-                mime="text/markdown",
-                icon=":material/download:",
+    with col_report:
+        st.subheader("Report")
+        st.markdown(fix_latex(st.session_state.report_content))
+
+# --------------------
+# |     EXPORTS      |
+# --------------------
+
+if st.session_state.report_content:
+    report_content = st.session_state.report_content
+    st.divider()
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.download_button(
+            "Download Markdown",
+            data=report_content,
+            file_name="research_report.md",
+            mime="text/markdown",
+            icon=":material/download:",
+        )
+
+    with col2:
+        obsidian_uri = f"obsidian://new?content={urllib.parse.quote(report_content)}"
+        st.link_button(
+            "Open in Obsidian",
+            obsidian_uri,
+            icon=":material/open_in_new:",
+        )
+
+    with col3:
+        if SLACK_WEBHOOK_URL:
+            if st.button("Send to Slack", icon=":material/send:"):
+                ok = send_to_slack(report_content)
+                st.success("Sent to Slack.") if ok else st.error("Failed to send.")
+        else:
+            st.button(
+                "Send to Slack",
+                icon=":material/send:",
+                disabled=True,
+                help="Set SLACK_WEBHOOK_URL in .env to enable.",
             )
-
-        with col2:
-            obsidian_uri = f"obsidian://new?content={urllib.parse.quote(report_content)}"
-            st.link_button(
-                "Open in Obsidian",
-                obsidian_uri,
-                icon=":material/open_in_new:",
-            )
-
-        with col3:
-            if SLACK_WEBHOOK_URL:
-                if st.button("Send to Slack", icon=":material/send:"):
-                    ok = send_to_slack(report_content)
-                    st.success("Sent to Slack.") if ok else st.error("Failed to send.")
-            else:
-                st.button(
-                    "Send to Slack",
-                    icon=":material/send:",
-                    disabled=True,
-                    help="Set SLACK_WEBHOOK_URL in .env to enable.",
-                )
