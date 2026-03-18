@@ -131,6 +131,21 @@ See [`examples/final_report.md`](examples/final_report.md) for a sample report g
 | Simple / single-topic | ~4 | ~40k | ~30–50s |
 | Comparison / deep research | ~10 | ~90k | ~75s |
 
+## Framework Comparison
+
+Benchmarked against an equivalent single-agent implementation using [agno](https://github.com/agno-agi/agno) on the same query and model family.
+
+| Metric | deep-agent-v1 | agno (single-agent) |
+|---|---|---|
+| Model | claude-sonnet-4-6 | claude-sonnet-4-5 |
+| Total tokens | ~62k | ~51k |
+| Latency | ~113s | ~103s |
+| TTFT | 73ms | 1.566s |
+| Sources cited | 7–8 | 6 |
+| Output tokens | 6,742 | 4,699 |
+
+**Trade-offs:** agno produces more concise output at lower cost for single-topic queries. deep-agent-v1 has significantly lower TTFT (better streaming UX), richer output, and scales to parallel multi-agent research for comparison queries — where agno's single-agent approach would run searches sequentially.
+
 ## Roadmap
 
 ### Phase 1 — Token & Cost Optimization ✅
