@@ -157,7 +157,7 @@ def _init_subagents(agent_cfg: AgentConfig, llm_cfg: LLMConfig) -> list[dict]:
         name="research-agent",
         description="Delegate research to the researcher sub-agent. Searches the web and fetches full page content when needed. Only give this agent one topic at a time.",
         system_prompt=RESEARCHER_INSTRUCTIONS.format(date=agent_cfg.current_date),
-        tools=[create_tavily_search(max_calls=3)],
+        tools=[create_tavily_search(max_calls=5)],
         model=_init_subagent_llm(llm_cfg),
     )
 
@@ -212,7 +212,7 @@ def build_agent() -> Runnable:
         llm = _init_llm(llm_config)
         log.info("[AGENT] LLM initialized successfully")
 
-        tools: list = [tavily_search, think_tool]
+        tools: list = [think_tool]  # orchestrator delegates all searches to sub-agents
         log.info("[AGENT] Tools loaded successfully")
 
         subagents: list = _init_subagents(agent_config, llm_config)
