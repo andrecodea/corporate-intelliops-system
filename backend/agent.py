@@ -207,7 +207,7 @@ def _assemble_instructions(config: AgentConfig, other_agents: list) -> str:
 def build_agent() -> Runnable:
     """Initializes deepagent with subagents"""
     try:
-        log.info("[AGENT] Initializing Deep Research Agent...")
+        log.info("[AGENT] Initializing Corporate IntelliOps Agent...")
 
         llm = _init_llm(llm_config)
         log.info("[AGENT] LLM initialized successfully")

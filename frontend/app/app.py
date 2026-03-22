@@ -1,9 +1,9 @@
 """
-Deep Research Agent - Streamlit App
+Corporate Intelligence Operations - Streamlit App
 
 Structure:
-- Home: landing page with project overview
-- Research: I/O interface with real-time agent activity and report export
+- Home: landing page with product overview and intelligence modes
+- Intelligence Operations: structured input, real-time agent activity, report export
 - Info: architecture diagrams, stack, and performance benchmarks
 """
 
@@ -15,14 +15,14 @@ load_dotenv(find_dotenv())
 
 def main():
     st.set_page_config(
-        page_title="Deep Research Agent",
-        page_icon=":material/science:",
+        page_title="Corporate Intelligence Operations",
+        page_icon=":material/network_intelligence:",
         layout="wide",
     )
 
     pages = [
         st.Page("pages/home.py", title="Home", icon=":material/home:"),
-        st.Page("pages/research.py", title="Research", icon=":material/science:"),
+        st.Page("pages/research.py", title="Intelligence Operations", icon=":material/network_intelligence:"),
         st.Page("pages/info.py", title="Info", icon=":material/info:"),
     ]
 

@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.title("How it works")
-st.caption("Architecture, agent flow, and performance benchmarks.")
+st.caption("Architecture, agent flow, and performance benchmarks for Corporate Intelligence Operations.")
 
 # --------------------
 # |    MERMAID       |
@@ -34,17 +34,17 @@ def render_mermaid(diagram: str, height: int = 400):
 
 st.subheader("Agent Flow")
 st.markdown(
-    "The orchestrator classifies each query before starting. "
-    "Trivial or conversational queries are answered directly. "
-    "Research queries follow a structured pipeline."
+    "Each operation starts with the orchestrator classifying the request. "
+    "Single-subject operations (Due Diligence, Sales Intel) use one research agent. "
+    "Comparative operations (Competitor Intel, Vendor Evaluation) dispatch two agents in parallel."
 )
 
 render_mermaid("""
 flowchart LR
-    U([User Query]) --> O[Orchestrator]
+    U([Intelligence Request]) --> O[Orchestrator]
     O -->|Trivial| D([Direct Answer])
-    O -->|Research| C{Query type?}
-    C -->|Single topic| R1[research-agent]
+    O -->|Operation| C{Subjects?}
+    C -->|Single| R1[research-agent]
     C -->|Comparison| R2[agent A]
     C -->|Comparison| R3[agent B]
     R1 --> T[think_tool]
@@ -53,7 +53,7 @@ flowchart LR
     T -->|Gap remains| RX[research-agent]
     RX --> F[Write report]
     T -->|Sufficient| F
-    F --> OUT([Final Report])
+    F --> OUT([Intelligence Report])
 """, height=280)
 
 st.divider()

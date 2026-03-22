@@ -7,7 +7,7 @@ import uuid
 
 agent = build_agent()
 
-app = FastAPI(title="Deep Research Agent API")
+app = FastAPI(title="Corporate IntelliOps Agent API")
 
 class ResearchRequest(BaseModel):
     query: str

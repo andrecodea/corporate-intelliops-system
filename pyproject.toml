@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 include = ["backend/agent.py", "backend/tools.py"]
 
 [project]
-name = "deep-agent-v1"
+name = "corporate-intelliops-agent"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -27,4 +27,5 @@ dependencies = [
     "uvicorn>=0.41.0",
     "streamlit>=1.55.0",
     "httpx-sse>=0.4.3",
+    "xhtml2pdf>=0.2.16",
 ]

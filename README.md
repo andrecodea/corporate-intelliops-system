@@ -1,8 +1,8 @@
-# Deep Research Agent
+# Corporate IntelliOps Agent
 
-A multi-agent deep research assistant built with [deepagents](https://github.com/langchain-ai/deepagents) and LangGraph. Given a query, it autonomously searches the web, synthesizes findings, and produces a structured report with cited sources.
+A multi-agent corporate intelligence platform built with [deepagents](https://github.com/langchain-ai/deepagents) and LangGraph. Choose an intelligence mode — Due Diligence, Competitor Intel, Vendor Evaluation, or Sales Intel — and the agent autonomously searches the web, synthesizes findings, and delivers a structured report with cited sources.
 
-![Deep Research Agent UI](assets/research.png)
+![Corporate IntelliOps Agent UI](assets/research.png)
 
 ## Architecture
 
@@ -135,7 +135,7 @@ See [`examples/final_report.md`](examples/final_report.md) for a sample report g
 
 Benchmarked against an equivalent single-agent implementation using [agno](https://github.com/agno-agi/agno) on the same query and model family.
 
-| Metric | deep-agent-v1 | agno (single-agent) |
+| Metric | corporate-intelliops-agent | agno (single-agent) |
 |---|---|---|
 | Model | claude-sonnet-4-6 | claude-sonnet-4-5 |
 | Total tokens | ~62k | ~51k |
@@ -144,7 +144,7 @@ Benchmarked against an equivalent single-agent implementation using [agno](https
 | Sources cited | 7–8 | 6 |
 | Output tokens | 6,742 | 4,699 |
 
-**Trade-offs:** agno produces more concise output at lower cost for single-topic queries. deep-agent-v1 has significantly lower TTFT (better streaming UX), richer output, and scales to parallel multi-agent research for comparison queries — where agno's single-agent approach would run searches sequentially.
+**Trade-offs:** agno produces more concise output at lower cost for single-topic queries. corporate-intelliops-agent has significantly lower TTFT (better streaming UX), richer output, and scales to parallel multi-agent research for comparison queries — where agno's single-agent approach would run searches sequentially.
 
 ## Roadmap
 
