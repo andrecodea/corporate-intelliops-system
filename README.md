@@ -22,15 +22,15 @@ flowchart TD
 
     O -->|Research needed| C{Query type?}
 
-    C -->|Single topic| TS[tavily_search\ndirect — up to 3 searches]
-    C -->|Comparison| R2[research-agent A\n2–3 topics]
-    C -->|Comparison| R3[research-agent B\n2–3 topics]
+    C -->|Single topic| R1[research-agent\ninstance × 1]
+    C -->|Comparison| R2[research-agent\ninstance × 1]
+    C -->|Comparison| R3[research-agent\ninstance × 2]
 
-    TS --> T[think_tool\nassess findings]
+    R1 --> T[think_tool\nassess findings]
     R2 --> T
     R3 --> T
 
-    T -->|Gap remains| RX[tavily_search\nfill gap]
+    T -->|Gap remains| RX[research-agent\nfill gap]
     RX --> F
     T -->|Sufficient| F[Write\nfinal_report.md]
 
@@ -232,19 +232,19 @@ Wraps `httpx_sse.connect_sse` into a generator yielding `(event_type, data_dict)
 **Sub-agent result compression**
 Sub-agents return bullet-point summaries (max 300 words) instead of raw search results. This significantly reduces the context passed back to the orchestrator, which is the largest driver of token usage in multi-agent runs.
 
-**Direct search bypass for single-topic queries**
-If the orchestrator classifies a request as single-topic, it searches directly with `tavily_search` without spawning a sub-agent. This eliminates the delegation overhead (~2 extra LLM calls) for the most common query type.
+**Delegation shortcut for single-topic queries**
+If the orchestrator classifies a request as single-topic, it delegates to a single `research-agent` instance instead of spawning multiple parallel agents. This eliminates unnecessary coordination overhead for the most common query type.
 
 | Path | LLM calls | Total tokens |
 |---|---|---|
 | Single-topic (bypass) | ~2 | ~18k |
 | Comparison (full multi-agent) | ~10 | ~90k |
 
-**`think_tool` skip for single-topic queries**
-Assessment via `think_tool` is skipped entirely for single-topic queries. It is only used after sub-agent results come back in comparative runs, where assessing gaps is actually useful.
+**`think_tool` reserved for comparative runs**
+Assessment via `think_tool` is skipped for single-topic queries. It is only used after sub-agent results come back in comparative runs, where assessing gaps across multiple research threads is actually useful.
 
 **Hard cap via closure counter**
-`tavily_search` enforces a call limit at the code level. When reached, the tool returns a blocking message that instructs the model to stop searching and write its summary immediately. This prevents runaway search loops regardless of model behavior.
+`tavily_search` enforces a call limit at the code level (5 searches per sub-agent instance). When reached, the tool returns a blocking message that instructs the model to stop searching and write its summary immediately. This prevents runaway search loops regardless of model behavior.
 
 **Sources exempt from compression limit**
 The 300-word cap on sub-agent summaries applies only to the Key Findings section. The Sources list has no word limit — every URL found across all searches is returned. This ensures the orchestrator always has full citation coverage for the final report.
@@ -257,7 +257,7 @@ Each intelligence mode loads only its own prompt file at request time. The syste
 ### Planned (Phase 5)
 
 **Search cap calibration per mode**
-The current 3-search hard cap was set for general queries. Comparative modes (Competitor Intel, Vendor Evaluation) cover more dimensions and may need a higher cap to deliver all required deliverables without gaps. The plan is to test each mode, identify where findings are thin, and adjust the cap accordingly — then re-test and compare token usage against the baseline.
+The current 5-search hard cap per sub-agent instance was set for general queries. Comparative modes (Competitor Intel, Vendor Evaluation) cover more dimensions and may need further adjustment to deliver all required deliverables without gaps. The plan is to test each mode, identify where findings are thin, and adjust the cap accordingly — then re-test and compare token usage against the baseline.
 
 **Route report-writing to a cheaper model**
 The final report-writing step is the most token-intensive call, but it requires less reasoning than the research and planning steps. Routing it to a smaller model (e.g. `claude-haiku-4-5`) instead of Sonnet could reduce cost significantly without impacting output quality for well-structured reports.
@@ -292,37 +292,4 @@ Benchmarked against an equivalent single-agent implementation using [agno](https
 
 ## Roadmap
 
-### Phase 1 — Token & Cost Optimization ✅
-- [x] Compress sub-agent findings before passing to orchestrator (research-agent returns bullet-point summary)
-- [x] Bypass sub-agent for single-topic queries — orchestrator searches directly with `tavily_search`
-- [x] Hard cap on `tavily_search` calls via closure counter (enforced at code level, not just prompt)
-- [x] Sub-agent search limit raised to 3; sources section exempt from 300-word compression limit
-- [x] Skip `think_tool` assessment for single-topic queries (saves 1 call — ~2 calls / ~18k tokens total)
-
-### Phase 2 — API Layer (FastAPI) ✅
-- [x] Reorganize project into `backend/` and `frontend/` structure
-- [x] Expose the agent as a REST API via FastAPI
-- [x] SSE streaming endpoint (`POST /research/stream`) with typed events (`tool_call`, `tool_result`, `message`, `done`)
-- [x] Mode-aware request payload — API loads and injects the active mode prompt per request
-
-### Phase 3 — Frontend (Streamlit) ✅
-- [x] Multi-page app: Home, Intelligence Operations, Info
-- [x] Real-time agent activity panel with dynamic status labels
-- [x] Token streaming with batch rendering
-- [x] Report rendering with Markdown + LaTeX support
-- [x] Export: PDF download, open in Obsidian, send PDF to Slack via Bot API
-- [x] Info page with architecture diagrams, stack table, and benchmarks
-- [x] Session state persistence across page navigation
-
-### Phase 4 — B2B Intelligence Positioning ✅
-- [x] Rebrand to Corporate IntelliOps Agent
-- [x] Replace free-text query with structured input per intelligence mode
-- [x] `build_query()` assembles targeted prompts from structured fields
-- [x] Optional company URL field to anchor entity resolution and prevent hallucination
-- [x] Mode-specific prompt files (`backend/prompts/modes/`) injected at request time — keeps system prompt lean, loads only the active mode's research priorities and report structure
-
-### Phase 5 — Calibration 🔜
-- [ ] Prompt adjustments — validate mode prompts produce correct deliverables per mode
-- [ ] Test — run each mode with `tests/run_agent.py`, evaluate report quality and search coverage
-- [ ] Cap adjustments — revisit the 3-search hard cap per sub-agent; comparative modes (Competitor Intel, Vendor Evaluation) may require more searches to cover all deliverables
-- [ ] Test — re-run after cap change, compare token usage and output quality against Phase 4 baseline
+See [ROADMAP.md](ROADMAP.md) for the full roadmap.
