@@ -338,6 +338,33 @@ Se `source_score` for baixo, o relatório é sinalizado mesmo que `content_score
 
 Haiku custa ~10x menos que Sonnet. As 3 dimensões de score rodam em Haiku — Sonnet só é acionado para julgamento qualitativo subjetivo, que é opcional e desligado por padrão nos evals automatizados.
 
+### Seleção de modelo — determinístico com escalada por fallback
+
+**Não usar LLM router.** Router resolve o problema de task type desconhecido em tempo de roteamento — não é o caso aqui. Cada chamada ao juiz é disparada por um evento de sistema com tipo conhecido. Um router adicionaria uma chamada LLM extra só para decidir qual modelo usar, aumentando custo e latência sem benefício.
+
+O padrão adotado é **determinístico com escalada por fallback**:
+
+```python
+JUDGE_MODEL = {
+    "content_score":     "claude-haiku-4-5-20251001",
+    "source_score":      "claude-haiku-4-5-20251001",
+    "relevance_score":   "claude-haiku-4-5-20251001",
+    "narrative_quality": "claude-sonnet-4-6",   # opcional, off por padrão
+}
+
+def get_judge_model(task: str) -> str:
+    return JUDGE_MODEL[task]
+```
+
+Fluxo de escalada:
+```
+Haiku avalia → score < threshold → escalada pontual para Sonnet
+```
+
+Haiku cobre o caminho feliz (maioria dos casos). Sonnet entra só quando Haiku retorna score abaixo do threshold — uma única tentativa de correção, sem loops. Isso mantém custo baixo sem abrir mão de qualidade nos casos difíceis.
+
+**Quando um router faria sentido:** se o Terminal ganhar interface conversacional no futuro ("compare Tesla e Rivian", "explique esse dossier") — aí o tipo de query é imprevisível e roteamento dinâmico se justifica. Para o juiz estruturado atual, determinístico é a escolha correta.
+
 ### Princípios herdados do operation-public-notice
 
 - **Correção única, sem loops** — uma tentativa de correção com feedback dos campos problemáticos. Se ainda falhar, registra como falha e segue.
