@@ -287,6 +287,65 @@ Quando o job encontra novidade, o update não é aplicado automaticamente ao dos
 
 ---
 
+## Padrão de Avaliação — LLM-as-Judge
+
+Inspirado no projeto [operation-public-notice](https://github.com/andrecodea/operation-public-notice). Aplicável em dois contextos: **Sprint 3 (Evals)** e **Sprint 8 (Monitoring Jobs)**.
+
+### Dimensões de score
+
+O juiz avalia 3 dimensões independentes, retornando um JSON estruturado:
+
+```json
+{
+  "content_score": 0.85,
+  "source_score": 0.70,
+  "relevance_score": 0.90
+}
+```
+
+| Dimensão | O que avalia | Quando é usado |
+|---|---|---|
+| `content_score` | Cobertura dos campos esperados para o modo (seções, citações, especificidade factual) | Evals (Sprint 3) + Monitoring Jobs |
+| `source_score` | Autoridade e adequação das fontes ao modo — o agente foi às fontes certas? | Evals (Sprint 3) + Monitoring Jobs |
+| `relevance_score` | Novidade do update em relação ao dossier existente | Só Monitoring Jobs |
+
+**Score geral** = média ponderada das dimensões ativas. Threshold padrão: **0.6**. Abaixo disso:
+- Em evals: aciona uma única tentativa de correção com feedback dos campos problemáticos
+- Em monitoring jobs: descarta o update (registra como `skipped`)
+
+### Validação de fontes (`source_score`)
+
+O agente retorna as URLs consultadas (Tavily + Firecrawl). O juiz classifica cada URL por categoria e verifica se as categorias esperadas para o modo foram cobertas:
+
+| Modo | Fontes esperadas |
+|---|---|
+| Competitor Intel | Relatórios anuais, SEC filings, earnings calls, Reuters/Bloomberg |
+| Leadership Intel | Perfis profissionais, entrevistas, bios oficiais, LinkedIn |
+| Funding & Deal | Crunchbase, PitchBook, SEC EDGAR, press releases de investimento |
+| Due Diligence | Múltiplas das acima + regulatórias + reputacionais |
+| Vendor Evaluation | Documentação técnica, G2/Gartner, casos de uso publicados |
+
+Se `source_score` for baixo, o relatório é sinalizado mesmo que `content_score` seja alto — conteúdo bom baseado em fontes fracas é um falso positivo que o usuário precisa ver.
+
+### Modelo por task (controle de custo)
+
+| Task | Modelo | Motivo |
+|---|---|---|
+| Validar campos extraídos (`content_score`) | Haiku-4.5 | JSON in/out, critério objetivo |
+| Classificar e validar fontes (`source_score`) | Haiku-4.5 | Lista de URLs → classificação por categoria |
+| Julgar relevância de update (`relevance_score`) | Haiku-4.5 | Comparação texto vs dossier, critério claro |
+| Julgar qualidade narrativa do relatório | Sonnet 4.6 | Requer compreensão contextual e nuance |
+
+Haiku custa ~10x menos que Sonnet. As 3 dimensões de score rodam em Haiku — Sonnet só é acionado para julgamento qualitativo subjetivo, que é opcional e desligado por padrão nos evals automatizados.
+
+### Princípios herdados do operation-public-notice
+
+- **Correção única, sem loops** — uma tentativa de correção com feedback dos campos problemáticos. Se ainda falhar, registra como falha e segue.
+- **Campos não encontrados retornam `null`**, nunca score forçado
+- **Score por campo individual** disponível no output além do score agregado — permite diagnóstico preciso de onde o agente falhou
+
+---
+
 ## Decisões de Arquitetura
 
 | Decisão | Escolha | Alternativa descartada | Motivo |
@@ -297,3 +356,4 @@ Quando o job encontra novidade, o update não é aplicado automaticamente ao dos
 | Orquestração de jobs | APScheduler (FastAPI) | Celery + Redis | Sem nova infraestrutura; adequado para o volume do MVP |
 | Email de notificação | Resend | SendGrid, SMTP próprio | API moderna com SDK Python, deliverability gerenciada, free tier generoso |
 | Labels dos nós | Iniciais dentro + nome abaixo | Nome dentro do nó | Nomes longos cabem, nós ficam limpos, identificação rápida sem hover |
+| LLM judge — modelo | Haiku-4.5 (scores) + Sonnet opcional (narrativa) | Sonnet para tudo | Haiku é 10x mais barato e suficiente para avaliação estruturada; Sonnet reservado para julgamento subjetivo |
