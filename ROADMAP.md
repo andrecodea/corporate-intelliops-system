@@ -2,6 +2,16 @@
 
 Each sprint is scoped to one week.
 
+Planos instrucionais detalhados (código, padrões, dicas) estão em `docs/sprints/`:
+- [Sprint 1 — Calibration](docs/sprints/sprint_1_calibration.md)
+- [Sprint 2 — New Intelligence Modes](docs/sprints/sprint_2_new_modes.md)
+- [Sprint 3 — Evals](docs/sprints/sprint_3_evals.md)
+- [Sprint 4 — Production Readiness](docs/sprints/sprint_4_production_readiness.md)
+- [Sprint 5 — Report History & Search](docs/sprints/sprint_5_report_history.md)
+- [Sprint 6 — SaaS Frontend (React)](docs/sprints/sprint_6_saas_frontend.md)
+- [Sprint 7 — Collaboration & Org](docs/sprints/sprint_7_collaboration.md)
+- [Sprint 10 — Monetization](docs/sprints/sprint_10_monetization.md)
+
 ---
 
 ## Sprint 1 — Calibration
@@ -46,12 +56,15 @@ Each mode = new file in `backend/prompts/modes/` + structured form inputs + entr
 
 ---
 
-## Sprint 5 — RAG & Conversational Agent
+## Sprint 5 — Report History & Search
 
-- [ ] Chunk and embed report content using Supabase `pgvector`
-- [ ] `POST /reports/:id/chat` — retrieves relevant chunks and answers questions grounded in the report
-- [ ] Chat panel in `/report/:id` — user asks questions about the report alongside the rendered markdown
-- [ ] Semantic search across history — query the report collection by meaning, not just keyword
+**Motivação:** relatórios de inteligência são gerados ao vivo via web search — o valor está na frescura dos dados, não no histórico. RAG (busca vetorial em relatórios antigos) introduz complexidade de infraestrutura (pgvector, embedding model, chunking strategy) por benefício marginal: o usuário que quer informação atualizada vai re-rodar o agente, não perguntar para um relatório de 3 meses atrás. Busca por metadados é suficiente para o caso de uso.
+
+- [ ] Armazenar relatórios no Supabase após stream (`researches` + `reports` tables do Sprint 6)
+- [ ] `GET /reports` — lista relatórios com filtros: modo, empresa, data
+- [ ] Full-text search nos relatórios via PostgreSQL `tsvector` (sem embedding, sem pgvector)
+- [ ] Dashboard de histórico no frontend: card grid com filtro por modo, empresa, data
+- [ ] `/report/:id` — visualização do relatório salvo com export (PDF, Obsidian, Slack)
 
 ---
 
@@ -77,7 +90,6 @@ Each mode = new file in `backend/prompts/modes/` + structured form inputs + entr
 
 ### Saved Report
 - [ ] Rendered markdown view at `/report/:id`
-- [ ] Chat panel (RAG — from Sprint 5)
 - [ ] Export: PDF, Obsidian, Slack
 
 ### Backend (FastAPI)
@@ -92,7 +104,36 @@ Each mode = new file in `backend/prompts/modes/` + structured form inputs + entr
 
 ---
 
-## Sprint 7 — Collaboration & Org
+## Sprint 7 — Intelligence Terminal (Base)
+
+Spec: [`docs/superpowers/specs/2026-04-08-intelligence-terminal-design.md`](docs/superpowers/specs/2026-04-08-intelligence-terminal-design.md)
+
+- [ ] Tabelas Supabase: `entities`, `relationships`, `dossiers`, `entity_drafts`
+- [ ] Extrator de entidades pós-run (Haiku-4.5) — processa relatório e gera rascunho JSON
+- [ ] Endpoint `POST /entities/review` — HITL gate antes de persistir no grafo
+- [ ] Endpoint `GET /entities/graph` — carrega nós e arestas para o frontend
+- [ ] Painel HITL de curadoria no frontend (aprovar / descartar / editar entidades)
+- [ ] Grafo D3.js: force-directed, iniciais dentro do nó, label abaixo, cor por tipo, tamanho por weight
+- [ ] Hover sobre nó → tooltip glass flutuante próximo ao nó
+- [ ] Click no nó → split view (grafo dimmed + dossier com abas: Perfil / Conexões / Histórico / Jobs)
+- [ ] Filtros por tipo de entidade (company, person, org, event)
+
+---
+
+## Sprint 8 — Monitoring Jobs Engine
+
+Spec: [`docs/superpowers/specs/2026-04-08-intelligence-terminal-design.md`](docs/superpowers/specs/2026-04-08-intelligence-terminal-design.md)
+
+- [ ] APScheduler integrado ao FastAPI
+- [ ] Tabelas: `monitoring_jobs`, `job_runs`
+- [ ] Aba Jobs no dossier: criar, pausar, remover jobs de monitoramento
+- [ ] Filtro LLM de relevância pré-notificação (compara resultado novo com dossier atual)
+- [ ] Notificações via Slack (existente) + email via Resend
+- [ ] HITL de updates: "Aplicar ao dossier" / "Ignorar" antes de persistir mudanças
+
+---
+
+## Sprint 9 — Collaboration & Org
 
 - [ ] Organization workspaces (multi-tenant)
 - [ ] Internal report sharing (link within org)
