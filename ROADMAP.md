@@ -9,8 +9,14 @@ Planos instrucionais detalhados (código, padrões, dicas) estão em `docs/sprin
 - [Sprint 4 — Production Readiness](docs/sprints/sprint_4_production_readiness.md)
 - [Sprint 5 — Report History & Search](docs/sprints/sprint_5_report_history.md)
 - [Sprint 6 — SaaS Frontend (React)](docs/sprints/sprint_6_saas_frontend.md)
-- [Sprint 7 — Collaboration & Org](docs/sprints/sprint_7_collaboration.md)
+- [Sprint 7 — Intelligence Terminal](docs/sprints/sprint_7_intelligence_terminal.md)
+- [Sprint 8 — Monitoring Jobs Engine](docs/sprints/sprint_8_monitoring_jobs.md)
+- [Sprint 9 — Collaboration & Org](docs/sprints/sprint_9_collaboration.md)
 - [Sprint 10 — Monetization](docs/sprints/sprint_10_monetization.md)
+
+Planos de implementação detalhados (task-by-task com código) estão em `docs/superpowers/plans/`:
+- [Sprint 7 — Intelligence Terminal](docs/superpowers/plans/2026-04-08-sprint-7-intelligence-terminal.md)
+- [Sprint 8 — Monitoring Jobs Engine](docs/superpowers/plans/2026-04-08-sprint-8-monitoring-jobs.md)
 
 ---
 
