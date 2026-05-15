@@ -132,7 +132,9 @@ workspace/research_request.md
 workspace/final_report.md
 workspace/large_tool_results/
 
-CLAUDE.md
+# Claude Code local state (não versionar)
+.claude/
+.memsearch/
 
 # Brainstorming session files
 .superpowers/

@@ -686,7 +686,7 @@ export interface EntityGraph {
   edges: EntityEdge[]
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8005'
 
 async function authHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getUser()
